@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ask Me (almost) Anything - An MQTT chat application for the μRDF store</title>
+    <meta charset="utf-8">
+    <!-- <script type="text/javascript" src="js/mqtt-2.4.0.min.js"></script> -->
+    <style media="screen">
+      @font-face {
+        font-family: "Dosis";
+        src: url("fonts/Dosis-Regular.otf");
+      }
+
+      * {
+        font-family: "Dosis", sans-serif;
+      }
+
+      .wrap {
+        margin: auto;
+        max-width: 680px;
+      }
+
+      .header {
+        width: 680px;
+        position: absolute;
+        top: 0px;
+        height: 80px;
+        background: powderblue;
+      }
+
+      .conv {
+        width: 680px;
+        position:absolute;
+        bottom: 125px;
+        top: 80px;
+        vertical-align: bottom;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        background: white;
+        border-radius: 5px;
+      }
+
+      .q {
+        border: none;
+        position:absolute;
+        bottom: 50px;
+        width: 660px; /* parent.max-size - 2 * paddding */
+        height: 50px;
+        padding: 10px;
+        resize: none;
+        margin-top: 5px;
+        border-radius: 5px;
+      }
+
+      .footer {
+        position:absolute;
+        bottom: 0px;
+        width: 660px;
+        height: 30px;
+        text-align: right;
+        padding: 10px;
+        background: powderblue;
+      }
+
+      .bubble {
+        padding: 10px;
+      }
+
+      .bubble-author {
+        color: lightblue;
+        font-weight: bold;
+      }
+
+      .self {
+        text-align: right;
+      }
+
+      body {
+        background: powderblue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <h1>Ask Me (almost) Anything</h1>
+      </div>
+      <div id="amaa-conv" class="conv">
+        <!-- <template id="bubble-x"> -->
+          <div class="bubble self">
+            <div class="bubble-author">Client</div>
+            <div class="bubble-content">What is your name?</div>
+          </div>
+          <div class="bubble">
+            <div class="bubble-author">Advisor</div>
+            <div class="bubble-content">
+              80 40 c5 f3 63 42 e6<br>
+              1a b4 3a 3a 38 39 9d<br>
+              34 3a b1 17 34
+            </div>
+          </div>
+          <div class="bubble">
+            <div class="bubble-author">μRDF store</div>
+            <div class="bubble-content">
+                40 22 1c da f2 a8 ca<br>
+                da e0 a6 02 ba b9
+            </div>
+          </div>
+          <div class="bubble">
+            <div class="bubble-author">Advisor</div>
+            <div class="bubble-content">Angela Merkel</div>
+          </div>
+        <!-- </template> -->
+      </div>
+      <textarea id="amaa-form" class="q" placeholder="Ask Me (almost) Anything..." rows="2"></textarea>
+      <div class="footer">
+        <a href="#">Example</a> • <a href="#">Help</a> • <a href="#">About</a>
+      </div>
+    </div>
+
+    <!-- <script type="text/javascript">
+      var amaa = 'urdf/amaa/'; // MQTT main topic
+      var client = mqtt.connect('ws://test.mosquitto.org:8080');
+      client.subscribe(amaa + '#'); // wildcard
+
+      var conv = document.getElementById('amaa-conv');
+      client.on('message', function(topic, payload) {
+        if (topic.startsWith(amaa)) {
+          conv.innerHTML += '<p>' + payload + '</p>';
+        }
+      });
+
+      var form = document.getElementById('amaa-form');
+      form.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+          var q = form.value.slice(0, -1); // minus trailing newline
+          client.publish(amaa + 'question',  q);
+          form.value = "";
+        }
+      });
+    </script> -->
+  </body>
+</html>
