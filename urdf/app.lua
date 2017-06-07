@@ -1,3 +1,19 @@
+--  uRDF Store MQTT Server
+--  Copyright (C) 2017  Victor Charpenay (victor.charpenay@siemens.com)
+--
+--  This program is free software: you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation, either version 3 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 urdf.add("http://amaa.me/light/light", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://uri.etsi.org/m2m/saref#LightSwitch")
 urdf.add("http://amaa.me/light/light", "http://www.w3.org/ns/td/hasAction", "http://amaa.me/light/lightonoff")
 urdf.add("http://amaa.me/light/room1", "http://www.w3.org/2003/01/geo/wgs84_pos#longitude", "42.00")
