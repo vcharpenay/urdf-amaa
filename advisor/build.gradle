@@ -1,0 +1,33 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.5
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'uRDF AMaA Advisor',
+                   'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	compile 'org.apache.jena:apache-jena-libs:3.0.0'
+	compile 'com.siemens.ct.exi:exificient:0.9.6'
+	compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'repos'
+       }
+    }
+}

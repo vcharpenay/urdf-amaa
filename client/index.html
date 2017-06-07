@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ask Me (almost) Anything - An MQTT chat application for the μRDF store</title>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="js/mqtt-2.4.0.min.js"></script>
+    <script type="text/javascript" src="js/peg-0.10.0.min.js"></script>
+    <style media="screen">
+      @font-face {
+        font-family: "Dosis";
+        src: url("fonts/Dosis-Regular.otf");
+      }
+
+      * {
+        font-family: "Dosis", sans-serif;
+      }
+
+      .wrap {
+        margin: auto;
+        max-width: 680px;
+      }
+
+      .header {
+        width: 680px;
+        position: absolute;
+        top: 0px;
+        height: 80px;
+        background: powderblue;
+      }
+
+      .header-logo {
+        height: 1em;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+      .conv {
+        width: 680px;
+        position:absolute;
+        bottom: 125px;
+        top: 80px;
+        vertical-align: bottom;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        background: white;
+        border-radius: 5px;
+        scroll-behavior: smooth;
+      }
+
+      .q {
+        border: none;
+        position:absolute;
+        bottom: 50px;
+        width: 660px; /* parent.max-size - 2 * paddding */
+        height: 50px;
+        padding: 10px;
+        resize: none;
+        margin-top: 5px;
+        border-radius: 5px;
+      }
+
+      .footer {
+        position:absolute;
+        bottom: 0px;
+        width: 660px;
+        height: 30px;
+        text-align: right;
+        padding: 10px;
+        background: powderblue;
+      }
+
+      .bubble {
+        padding: 10px;
+      }
+
+      .bubble-author {
+        color: lightblue;
+        font-weight: bold;
+      }
+
+      .self {
+        text-align: right;
+      }
+
+      body {
+        background: powderblue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+
+        <h1><img class="header-logo" src="churchill-amaa.png" alt="Gorilla that looks like Snoo">Ask Me (almost) Anything</h1>
+      </div>
+      <div id="amaa-conv" class="conv">
+        <template id="bubble-x">
+          <div class="bubble">
+            <div class="bubble-author"></div>
+            <div class="bubble-content"></div>
+          </div>
+        </template>
+      </div>
+      <textarea id="amaa-form" class="q" placeholder="Ask Me (almost) Anything..." rows="2"></textarea>
+      <div class="footer">
+        <a href="#">Examples</a> • <a href="help">Help</a> • <a href="about">About</a>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var amaaQuery = '';
+      var amaaParser = null;
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', "amaa-grammar.peg");
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+          var grammar = xhr.responseText;
+          amaaParser = peg.generate(grammar);
+        }
+      };
+      xhr.send();
+    
+      var amaaTopic = 'urdf/amaa/';
+      var client = mqtt.connect('ws://localhost:8080');
+      client.subscribe(amaaTopic + '#'); // wildcard
+      
+      var bbubble = function(author, content, self) {
+        var template = document.getElementById('bubble-x');
+        var bubble = document.importNode(template.content, true);
+        
+        if (self) {
+          bubble.querySelector('.bubble').className += ' self';
+        }
+        bubble.querySelector('.bubble-author').append(author);
+        bubble.querySelector('.bubble-content').append(content);
+        
+        return bubble;
+      }; // build bubble
+      var hex = function(data) {
+        var bytes = new Uint8Array(data);
+        return bytes.join(' ');
+      }; // print buffer in hex
+      var conv = document.getElementById('amaa-conv');
+      client.on('message', function(topic, payload) {
+        if (topic.startsWith(amaaTopic)) {
+          var bubble;
+          var suffix = topic.replace(amaaTopic, '');
+          switch (suffix) {
+            case 'question':
+              bubble = bbubble('Client', amaaQuery, true);
+              break;
+            case 'usparql':
+              bubble = bbubble('Advisor', hex(payload));
+              break;
+            case 'urdf':
+              bubble = bbubble('uRDF Store', payload.length == 0 ? '...' : hex(payload));
+              break;
+            case 'answer':
+              bubble = bbubble('Advisor', payload);
+              break;
+            default:
+              bubble = bbubble('?', payload);
+              break;
+          }
+          conv.appendChild(bubble);
+          window.setTimeout(function() {
+            conv.scrollTop = conv.scrollHeight;
+          }, 200); // wait until child is appended
+        }
+      });
+
+      var form = document.getElementById('amaa-form');
+      form.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+          amaaQuery = form.value.slice(0, -1); // minus trailing newline
+          var xml = amaaParser.parse(amaaQuery);
+          var serializer = new XMLSerializer();
+          var q = serializer.serializeToString(xml);
+          client.publish(amaaTopic + 'question',  q);
+          form.value = "";
+        }
+      });
+    </script>
+  </body>
+</html>
+

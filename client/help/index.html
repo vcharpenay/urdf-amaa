@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Help - Ask Me (almost) Anything</title>
+  </head>
+  <body>
+    (is ?a, hasProperty (hasLink ()), contains ())
+    (a Window, a Thing)
+    (a Thing, hasAction ())
+    (a Temperature, isMeasuredIn ())
+    
+    term
+      = '(' list? ')'
+
+    list
+      = property ' ' value (', ' list)?
+
+    property
+      = [a-zA-Z]+  // TODO properties in the vocabulary set
+
+    value
+      = variable
+      / class
+      / indiv
+      / term
+
+    variable
+      = '?' [a-zA-Z]+
+
+    class // TODO classes in the vocabulary set
+      = [a-zA-Z]+
+
+    indiv // TODO individuals in the vocabulary set
+      = [a-zA-Z]+
+    
+    Device, Thing, Property, Action, Event, BuildingSpace, Window, Procedure, Temperature
+    (is), a, hasProperty, hasAction, latitude, longitude, contains, observes, isPropertyOf, hasLink, madeObservation, hasResult, phenomenonTime, implementedBy, unitTime, numericDuration
+  </body>
+</html>
