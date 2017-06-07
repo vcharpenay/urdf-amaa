@@ -3,11 +3,12 @@
   <head>
     <title>Ask Me (almost) Anything - An MQTT chat application for the μRDF store</title>
     <meta charset="utf-8">
-    <!-- <script type="text/javascript" src="js/mqtt-2.4.0.min.js"></script> -->
+    <script type="text/javascript" src="js/mqtt-2.4.0.min.js"></script>
+    <script type="text/javascript" src="js/peg-0.10.0.min.js"></script>
     <style media="screen">
       @font-face {
         font-family: "Dosis";
-        src: url("fonts/Dosis-Regular.otf");
+        src: url("/fonts/Dosis-Regular.otf");
       }
 
       * {
@@ -27,6 +28,12 @@
         background: powderblue;
       }
 
+      .header-logo {
+        height: 1em;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
       .conv {
         width: 680px;
         position:absolute;
@@ -37,6 +44,7 @@
         overflow-x: hidden;
         background: white;
         border-radius: 5px;
+        scroll-behavior: smooth;
       }
 
       .q {
@@ -82,61 +90,108 @@
   <body>
     <div class="wrap">
       <div class="header">
-        <h1>Ask Me (almost) Anything</h1>
+
+        <h1><img class="header-logo" src="/churchill-amaa.png" alt="Gorilla that looks like Snoo">Ask Me (almost) Anything</h1>
       </div>
       <div id="amaa-conv" class="conv">
-        <!-- <template id="bubble-x"> -->
-          <div class="bubble self">
-            <div class="bubble-author">Client</div>
-            <div class="bubble-content">What is your name?</div>
-          </div>
+        <template id="bubble-x">
           <div class="bubble">
-            <div class="bubble-author">Advisor</div>
-            <div class="bubble-content">
-              80 40 c5 f3 63 42 e6<br>
-              1a b4 3a 3a 38 39 9d<br>
-              34 3a b1 17 34
-            </div>
+            <div class="bubble-author"></div>
+            <div class="bubble-content"></div>
           </div>
-          <div class="bubble">
-            <div class="bubble-author">μRDF store</div>
-            <div class="bubble-content">
-                40 22 1c da f2 a8 ca<br>
-                da e0 a6 02 ba b9
-            </div>
-          </div>
-          <div class="bubble">
-            <div class="bubble-author">Advisor</div>
-            <div class="bubble-content">Angela Merkel</div>
-          </div>
-        <!-- </template> -->
+        </template>
       </div>
       <textarea id="amaa-form" class="q" placeholder="Ask Me (almost) Anything..." rows="2"></textarea>
       <div class="footer">
-        <a href="#">Examples</a> • <a href="help">Help</a> • <a href="about">About</a>
+        <a href="javascript:example()">Example</a> • <a href="help">Help</a> • <a href="https://github.com/vcharpenay/urdf-amaa/">About</a>
       </div>
     </div>
 
-    <!-- <script type="text/javascript">
-      var amaa = 'urdf/amaa/'; // MQTT main topic
-      var client = mqtt.connect('ws://test.mosquitto.org:8080');
-      client.subscribe(amaa + '#'); // wildcard
-
+    <script type="text/javascript">
+      var amaaQuery = '';
+      var amaaParser = null;
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', "amaa-grammar.peg");
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+          var grammar = xhr.responseText;
+          amaaParser = peg.generate(grammar);
+        }
+      };
+      xhr.send();
+    
+      var amaaTopic = 'urdf/amaa/';
+      var client = mqtt.connect('ws://localhost:8080');
+      client.subscribe(amaaTopic + '#'); // wildcard
+      
+      var bbubble = function(author, content, self) {
+        var template = document.getElementById('bubble-x');
+        var bubble = document.importNode(template.content, true);
+        
+        if (self) {
+          bubble.querySelector('.bubble').className += ' self';
+        }
+        bubble.querySelector('.bubble-author').append(author);
+        bubble.querySelector('.bubble-content').append(content);
+        
+        return bubble;
+      }; // build bubble
+      var hex = function(data) {
+        var bytes = new Uint8Array(data);
+        return bytes.join(' ');
+      }; // print buffer in hex - TODO
       var conv = document.getElementById('amaa-conv');
       client.on('message', function(topic, payload) {
-        if (topic.startsWith(amaa)) {
-          conv.innerHTML += '<p>' + payload + '</p>';
+        if (topic.startsWith(amaaTopic)) {
+          var bubble;
+          var suffix = topic.replace(amaaTopic, '');
+          switch (suffix) {
+            case 'question':
+              bubble = bbubble('Client', amaaQuery, true);
+              break;
+            case 'usparql':
+              bubble = bbubble('Advisor', hex(payload));
+              break;
+            case 'urdf':
+              bubble = bbubble('uRDF Store', payload.length == 0 ? '...' : hex(payload));
+              break;
+            case 'answer':
+              bubble = bbubble('Advisor', payload);
+              break;
+            default:
+              bubble = bbubble('?', payload);
+              break;
+          }
+          conv.appendChild(bubble);
+          window.setTimeout(function() {
+            conv.scrollTop = conv.scrollHeight;
+          }, 200); // wait until child is appended
         }
       });
 
       var form = document.getElementById('amaa-form');
       form.addEventListener('keyup', function(e) {
         if (e.key === 'Enter') {
-          var q = form.value.slice(0, -1); // minus trailing newline
-          client.publish(amaa + 'question',  q);
+          amaaQuery = form.value.slice(0, -1); // minus trailing newline
+          var xml = amaaParser.parse(amaaQuery);
+          var serializer = new XMLSerializer();
+          var q = serializer.serializeToString(xml);
+          client.publish(amaaTopic + 'question',  q);
           form.value = "";
         }
       });
-    </script> -->
+      
+      var examples = [
+        "Thing(X)",
+        "BuildingSpace(X), contains(X, Y)",
+        "LightSwitch(X), hasAction(X, Y), hasLink(Y, Z)"
+      ];
+      function example() {
+        var idx = Math.floor(Math.random() * examples.length);
+        form.value = examples[idx];
+      }
+    </script>
   </body>
 </html>
+

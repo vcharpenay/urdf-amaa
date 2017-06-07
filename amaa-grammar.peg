@@ -1,0 +1,90 @@
+{
+    var sparqlNS = 'http://www.w3.org/ns/sparql#';
+    var rdfNS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+
+    var xml = document.implementation.createDocument(sparqlNS, 'Query', null);
+    
+    function expand(name) {
+        switch (name) {
+            case 'LightSwitch': return 'http://uri.etsi.org/m2m/saref#LightSwitch';
+            case 'longitude': return 'http://www.w3.org/2003/01/geo/wgs84_pos#longitude';
+            case 'hasProperty': return 'http://www.w3.org/ns/td/hasProperty';
+            case 'hasAction': return 'http://www.w3.org/ns/td/hasAction';
+            case 'FeatureOfInterest': return 'http://www.w3.org/ns/sosa/FeatureOfInterest';
+            case 'Action': return 'http://www.w3.org/ns/td/Action';
+            case 'Property': return 'http://www.w3.org/ns/td/Property';
+            case 'Procedure': return 'http://www.w3.org/ns/sosa/Procedure';
+            case 'latitude': return 'http://www.w3.org/2003/01/geo/wgs84_pos#latitude';
+            case 'Thing': return 'http://www.w3.org/ns/td/Thing';
+            case 'hasLink': return 'http://www.w3.org/ns/td/hasLink';
+            case 'BuildingSpace': return 'http://uri.etsi.org/m2m/saref#BuildingSpace';
+            case 'contains': return 'http://uri.etsi.org/m2m/saref#contains';
+            case 'implementedBy': return 'http://www.w3.org/ns/ssn/implementedBy';
+        }
+    }
+    
+    function get(name) {
+        if (name.length == 1) {
+            var element = xml.querySelector('*|QueryVariable[*|name=' + name + ']');
+            if (!element) {
+                element = xml.createElementNS(sparqlNS, 'QueryVariable');
+                element.setAttributeNS(sparqlNS, 'name', name);
+                xml.documentElement.appendChild(element);
+            }
+            return element; 
+        } else {
+            var element = xml.querySelector('*|Description[*|about="' + name + '"]');
+            if (!element) {
+                element = xml.createElementNS(rdfNS, 'Description');
+                element.setAttributeNS(rdfNS, 'about', name);
+                xml.documentElement.appendChild(element);
+            }
+            return element;
+        }
+    }
+    
+    function reshape(doc) {
+        var elements = doc.querySelectorAll('*|Description');
+        elements.forEach(function(e) {
+            if (!e.hasChildNodes()) {
+                var uri = e.getAttributeNS(rdfNS, 'about');
+                e.parentElement.setAttributeNS(rdfNS, 'resource', uri);
+                e.remove();
+            }
+        });
+        return doc;
+    }
+}
+
+query = res:predicate (', ' query)? { return reshape(xml); }
+
+predicate = unary / binary
+
+unary = o:class '(' s:term ')' {
+    var parent = get(s),
+        property = xml.createElementNS(rdfNS, 'type'),
+        child = get(o);
+    parent.appendChild(property);
+    property.appendChild(child);
+    return parent;
+}
+
+binary = p:property '(' s:term ', ' o:term ')' {
+    var idx = p.lastIndexOf('#') > -1 ? p.lastIndexOf('#') : p.lastIndexOf('/');
+    var parent = get(s),
+        property = xml.createElementNS(p.slice(0, idx + 1), p.slice(idx + 1)),
+        child = get(o);
+    parent.appendChild(property);
+    property.appendChild(child);
+    return parent;
+}
+
+term = variable / indiv
+
+variable = [A-Z]
+
+class = c:[a-zA-Z]+ { return expand(c.join('')); }
+
+property = p:[a-zA-Z]+ { return expand(p.join('')); }
+
+indiv = i:[a-zA-Z]+ { return expand(i.join('')); }
