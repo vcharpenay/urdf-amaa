@@ -3,38 +3,110 @@
   <head>
     <meta charset="utf-8">
     <title>Help - Ask Me (almost) Anything</title>
+    <style media="screen">
+      @font-face {
+        font-family: "Dosis";
+        src: url("/fonts/Dosis-Regular.otf");
+      }
+
+      * {
+        font-family: "Dosis", sans-serif;
+      }
+
+      .wrap {
+        margin: auto;
+        max-width: 680px;
+      }
+
+      .header {
+        width: 680px;
+        position: absolute;
+        top: 0px;
+        height: 80px;
+        background: powderblue;
+      }
+
+      .header-logo {
+        height: 1em;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+      
+      .content {
+        width: 680px;
+        position:absolute;
+        top: 80px;
+      }
+
+      body {
+        background: powderblue;
+      }
+      
+      pre {
+        font-family: "Courier New", "Courier", monospace;
+      }
+    </style>
   </head>
   <body>
-    (is ?a, hasProperty (hasLink ()), contains ())
-    (a Window, a Thing)
-    (a Thing, hasAction ())
-    (a Temperature, isMeasuredIn ())
-    
-    term
-      = '(' list? ')'
-
-    list
-      = property ' ' value (', ' list)?
-
-    property
-      = [a-zA-Z]+  // TODO properties in the vocabulary set
-
-    value
-      = variable
-      / class
-      / indiv
-      / term
-
-    variable
-      = '?' [a-zA-Z]+
-
-    class // TODO classes in the vocabulary set
-      = [a-zA-Z]+
-
-    indiv // TODO individuals in the vocabulary set
-      = [a-zA-Z]+
-    
-    Device, Thing, Property, Action, Event, BuildingSpace, Window, Procedure, Temperature
-    (is), a, hasProperty, hasAction, latitude, longitude, contains, observes, isPropertyOf, hasLink, madeObservation, hasResult, phenomenonTime, implementedBy, unitTime, numericDuration
+    <div class="wrap">
+      <div class="header">
+        <h1><img class="header-logo" src="/churchill-amaa.png" alt="Gorilla that looks like Snoo">Ask Me (almost) Anything</h1>
+      </div>
+      <div class="content">
+        <p>
+          <a href="/"><i>Ask Me (almost) Anything</i></a> (AMaA) is a Web application to easily query the uRDF store from the browser.
+          Queries take the form of a conjunction of Datalog predicates that are then turned into SPARQL basic graph patterns.
+          The grammar for queries is as follows:
+          <pre>
+query = predicate (', ' query)?
+predicate = unary / binary
+unary = class '(' term ')'
+binary = property '(' term ', ' term ')'
+term = variable / indiv
+variable = [A-Z]
+class = [a-zA-Z]+
+property = [a-zA-Z]+
+indiv = [a-zA-Z]+
+          </pre>
+        </p>
+        
+        <p>
+          Although the grammar allow any term in predicates, AMaA only recognizes terms from specific vocabularies
+          that are relevant in the Internet of Things:
+          <a href="http://www.etsi.org/deliver/etsi_ts/103200_103299/103264/01.01.01_60/ts_103264v010101p.pdf">SAREF/SmartM2M</a>,
+          <a href="https://www.w3.org/TR/vocab-ssn/">SOSA/SSN</a> and the <a href="https://www.w3.org/WoT/WG/">Web of Things ontology</a>.
+          Here is a list of classes (unary predicates) and properties (binary predicates) that can be used:
+          <ul>
+            <li>
+              <b>Classes</b>: <a href="http://uri.etsi.org/m2m/saref#Device">Device<a/>,
+                              <a href="http://www.w3.org/ns/td/Thing">Thing</a>,
+                              <a href="http://www.w3.org/ns/td/Property">Property</a>,
+                              <a href="http://www.w3.org/ns/td/Action">Action</a>,
+                              <a href="http://www.w3.org/ns/td/Event">Event</a>,
+                              <a href="http://uri.etsi.org/m2m/saref#BuildingSpace">BuildingSpace</a>,
+                              <a href="http://uri.etsi.org/m2m/saref#Window">Window</a>,
+                              <a href="http://www.w3.org/ns/sosa/Procedure">Procedure</a>,
+                              <a href="http://uri.etsi.org/m2m/saref#Temperature">Temperature</a>
+            </li>
+            <li>
+              <b>Properties</b>: <a href="http://www.w3.org/ns/td/hasProperty">hasProperty</a>,
+                                 <a href="http://www.w3.org/ns/td/hasAction">hasAction</a>,
+                                 <a href="http://www.w3.org/2003/01/geo/wgs84_pos#latitude">latitude</a>,
+                                 <a href="http://www.w3.org/2003/01/geo/wgs84_pos#longitude">longitude</a>,
+                                 <a href="http://uri.etsi.org/m2m/saref#contains">contains</a>,
+                                 <a href="http://www.w3.org/ns/sosa/observes">observes</a>,
+                                 <a href="http://www.w3.org/ns/ssn/isPropertyOf">isPropertyOf</a>,
+                                 <a href="http://www.w3.org/ns/td/hasLink">hasLink</a>,
+                                 <a href="http://www.w3.org/ns/sosa/madeObservation">madeObservation</a>,
+                                 <a href="http://www.w3.org/ns/sosa/hasResult">hasResult</a>,
+                                 <a href="http://www.w3.org/ns/sosa/phenomenonTime">phenomenonTime</a>,
+                                 <a href="http://www.w3.org/ns/ssn/implementedBy">implementedBy</a>,
+                                 <a href="http://www.w3.org/2006/time#unitType">unitType</a>,
+                                 <a href="http://www.w3.org/2006/time#numericDuration">numericDuration</a>
+            </li>
+          </ul>
+        </p>
+      </div>
+    </div>
   </body>
 </html>
